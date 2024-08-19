@@ -1,7 +1,7 @@
 FROM node:18.19.0
 
 WORKDIR /app
-COPY package*.json ./
+COPY helloworld2/package*.json ./
 
 RUN npm install -g @angular/cli
 
