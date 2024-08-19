@@ -31,6 +31,7 @@ jobs:
           tags: ghcr.io/toledosofia/linkepum:latest
 
       - name: Post build status to PR
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -38,3 +39,6 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body: `Docker image built and pushed successfully!`
             })
+
+
+     
