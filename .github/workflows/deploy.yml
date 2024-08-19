@@ -1,0 +1,42 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  # Rama en la que se realiza el merge o push
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run tests
+      run: npm test -- --watch=false
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-image:latest .
+        docker tag my-image:latest ghcr.io/${{ github.repository_owner }}/my-image:latest
+
+    - name: Push Docker image to GHCR
+      env:
+        CR_PAT: ${{ secrets.CR_PAT }}  # Token de acceso para GitHub Container Registry
+      run: |
+        echo $CR_PAT | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+        docker push ghcr.io/${{ github.repository_owner }}/my-image:latest
+
+    - name: Deploy to GitHub Pages
+      uses: actions/upload-pages-artifact@v1
+      with:
+        path: ./public  # Cambia esto a la ruta de tu contenido estático
