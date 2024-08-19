@@ -28,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/$toledosofia/linkepum:latest
+          tags: ghcr.io/${{ github.repository_owner | toLower }}/linkepum:latest
 
       - name: Post build status to PR
         uses: actions/github-script@v6
