@@ -3,7 +3,7 @@ name: Build and Publish Docker Image
 on:
   push:
     branches:
-      - main  # Cambia 'main' por el nombre de la rama principal de tu repositorio si es diferente
+      - main  
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner | toLower }}/linkepum:latest
+          tags: ghcr.io/toledosofia/linkepum:latest
 
       - name: Post build status to PR
         uses: actions/github-script@v6
