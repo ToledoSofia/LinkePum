@@ -1,42 +1,40 @@
-name: Build and Deploy
+name: Build and Publish Docker Image
 
 on:
   push:
     branches:
-      - main  # Rama en la que se realiza el merge o push
+      - main  # Cambia 'main' por el nombre de la rama principal de tu repositorio si es diferente
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Install dependencies
-      run: npm install
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Run tests
-      run: npm test -- --watch=false
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/your-image-name:latest
 
-    - name: Build Docker image
-      run: |
-        docker build -t my-image:latest .
-        docker tag my-image:latest ghcr.io/${{ github.repository_owner }}/my-image:latest
-
-    - name: Push Docker image to GHCR
-      env:
-        CR_PAT: ${{ secrets.CR_PAT }}  # Token de acceso para GitHub Container Registry
-      run: |
-        echo $CR_PAT | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-        docker push ghcr.io/${{ github.repository_owner }}/my-image:latest
-
-    - name: Deploy to GitHub Pages
-      uses: actions/upload-pages-artifact@v1
-      with:
-        path: ./public  # Cambia esto a la ruta de tu contenido estático
+      - name: Post build status to PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              body: `Docker image built and pushed successfully!`
+            })
